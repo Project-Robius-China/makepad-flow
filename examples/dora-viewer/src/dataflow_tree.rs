@@ -14,12 +14,12 @@ live_design! {
     use link::shaders::*;
     use link::widgets::*;
 
-    // Header with search and filters - separate from the tree
+    // Header with search and filters - separate from the tree (light theme)
     pub DataflowTreeHeader = {{DataflowTreeHeader}} {
         width: Fill, height: Fit
         flow: Down
         show_bg: true
-        draw_bg: { color: #252538 }
+        draw_bg: { color: #f8f8f8 }
 
         // Search bar
         search_row = <View> {
@@ -31,11 +31,11 @@ live_design! {
                 width: Fill, height: 28
                 empty_text: "Search nodes..."
                 draw_bg: {
-                    color: #3d3d5c
+                    color: #f5f5f5
                     border_radius: 4.0
                 }
                 draw_text: {
-                    color: #ffffff
+                    color: #333333
                     text_style: { font_size: 10.0 }
                 }
             }
@@ -47,17 +47,23 @@ live_design! {
                 expand_all = <Button> {
                     width: Fit, height: 24
                     padding: { left: 8, right: 8 }
-                    draw_bg: { color: #3d3d5c, border_radius: 4.0 }
+                    draw_bg: { color: #e8e8e8, border_radius: 4.0 }
                     text: "Expand"
-                    draw_text: { color: #cccccc, text_style: { font_size: 9.0 } }
+                    draw_text: {
+                        text_style: { font_size: 9.0 }
+                        fn get_color(self) -> vec4 { return #555555; }
+                    }
                 }
 
                 collapse_all = <Button> {
                     width: Fit, height: 24
                     padding: { left: 8, right: 8 }
-                    draw_bg: { color: #3d3d5c, border_radius: 4.0 }
+                    draw_bg: { color: #e8e8e8, border_radius: 4.0 }
                     text: "Collapse"
-                    draw_text: { color: #cccccc, text_style: { font_size: 9.0 } }
+                    draw_text: {
+                        text_style: { font_size: 9.0 }
+                        fn get_color(self) -> vec4 { return #555555; }
+                    }
                 }
 
                 <View> { width: Fill, height: 1 }
@@ -65,9 +71,14 @@ live_design! {
                 toggle_match = <Button> {
                     width: Fit, height: 24
                     padding: { left: 8, right: 8 }
-                    draw_bg: { color: #4a5568, border_radius: 4.0 }
+                    draw_bg: { color: #e8f4fd, border_radius: 4.0 }
                     text: "Toggle Match"
-                    draw_text: { color: #90cdf4, text_style: { font_size: 9.0 } }
+                    draw_text: {
+                        text_style: { font_size: 9.0 }
+                        fn get_color(self) -> vec4 {
+                            return #4A90D9;
+                        }
+                    }
                 }
             }
         }
@@ -85,82 +96,103 @@ live_design! {
             }
 
             filter_all = <Button> {
-                width: Fit, height: 20
-                padding: { left: 6, right: 6 }
-                draw_bg: { color: #4a4a6a, border_radius: 10.0 }
+                width: Fit, height: 22
+                padding: { left: 8, right: 8 }
+                draw_bg: { color: #4A90D9, border_radius: 4.0 }
                 text: "All"
-                draw_text: { color: #ffffff, text_style: { font_size: 8.0 } }
+                draw_text: {
+                    text_style: { font_size: 9.0 }
+                    fn get_color(self) -> vec4 { return #ffffff; }
+                }
             }
 
             filter_maas = <Button> {
-                width: Fit, height: 20
-                padding: { left: 6, right: 6 }
-                draw_bg: { color: #3d3d5c, border_radius: 10.0 }
+                width: Fit, height: 22
+                padding: { left: 8, right: 8 }
+                draw_bg: { color: #e8f4fd, border_radius: 4.0 }
                 text: "MaaS"
-                draw_text: { color: #4a90d9, text_style: { font_size: 8.0 } }
+                draw_text: {
+                    text_style: { font_size: 9.0 }
+                    fn get_color(self) -> vec4 { return #4a90d9; }
+                }
             }
 
             filter_tts = <Button> {
-                width: Fit, height: 20
-                padding: { left: 6, right: 6 }
-                draw_bg: { color: #3d3d5c, border_radius: 10.0 }
+                width: Fit, height: 22
+                padding: { left: 8, right: 8 }
+                draw_bg: { color: #e6f7ed, border_radius: 4.0 }
                 text: "TTS"
-                draw_text: { color: #50c878, text_style: { font_size: 8.0 } }
+                draw_text: {
+                    text_style: { font_size: 9.0 }
+                    fn get_color(self) -> vec4 { return #22c55e; }
+                }
             }
 
             filter_bridge = <Button> {
-                width: Fit, height: 20
-                padding: { left: 6, right: 6 }
-                draw_bg: { color: #3d3d5c, border_radius: 10.0 }
+                width: Fit, height: 22
+                padding: { left: 8, right: 8 }
+                draw_bg: { color: #fef3e2, border_radius: 4.0 }
                 text: "Bridge"
-                draw_text: { color: #ff9933, text_style: { font_size: 8.0 } }
+                draw_text: {
+                    text_style: { font_size: 9.0 }
+                    fn get_color(self) -> vec4 { return #f59e0b; }
+                }
             }
         }
     }
 
-    // Footer with batch actions - separate from the tree
+    // Footer with batch actions - separate from the tree (light theme)
     pub DataflowTreeFooter = {{DataflowTreeFooter}} {
         width: Fill, height: Fit
         flow: Right
         padding: 8
         spacing: 4
         show_bg: true
-        draw_bg: { color: #252538 }
+        draw_bg: { color: #f8f8f8 }
 
         enable_selected = <Button> {
             width: Fit, height: 28
             padding: { left: 12, right: 12 }
-            draw_bg: { color: #2d5a2d, border_radius: 4.0 }
+            draw_bg: { color: #22c55e, border_radius: 4.0 }
             text: "Enable All"
-            draw_text: { color: #88cc88, text_style: { font_size: 9.0 } }
+            draw_text: {
+                text_style: { font_size: 9.0 }
+                fn get_color(self) -> vec4 { return #ffffff; }
+            }
         }
 
         disable_selected = <Button> {
             width: Fit, height: 28
             padding: { left: 12, right: 12 }
-            draw_bg: { color: #5a2d2d, border_radius: 4.0 }
+            draw_bg: { color: #ef4444, border_radius: 4.0 }
             text: "Disable All"
-            draw_text: { color: #cc8888, text_style: { font_size: 9.0 } }
+            draw_text: {
+                text_style: { font_size: 9.0 }
+                fn get_color(self) -> vec4 { return #ffffff; }
+            }
         }
 
         toggle_matching = <Button> {
             width: Fit, height: 28
             padding: { left: 12, right: 12 }
-            draw_bg: { color: #3d3d5c, border_radius: 4.0 }
+            draw_bg: { color: #4A90D9, border_radius: 4.0 }
             text: "Toggle Match"
-            draw_text: { color: #aaaacc, text_style: { font_size: 9.0 } }
+            draw_text: {
+                text_style: { font_size: 9.0 }
+                fn get_color(self) -> vec4 { return #ffffff; }
+            }
         }
 
         <View> { width: Fill, height: 1 }
 
         node_count = <Label> {
             width: Fit, height: Fit
-            draw_text: { color: #666680, text_style: { font_size: 9.0 } }
+            draw_text: { color: #666666, text_style: { font_size: 9.0 } }
             text: "0 nodes"
         }
     }
 
-    // The actual tree widget - wraps FileTree directly
+    // The actual tree widget - wraps FileTree directly (light theme)
     pub DataflowTree = {{DataflowTree}} {
         file_tree: <FileTree> {
             width: Fill
@@ -182,8 +214,8 @@ live_design! {
                         let sdf = Sdf2d::viewport(self.pos * self.rect_size);
                         sdf.rect(0., 0., self.rect_size.x, self.rect_size.y);
                         sdf.fill(mix(
-                            mix(#252538, #ffffff10, self.hover),
-                            #ffffff20,
+                            mix(#ffffff, #e8f4fd, self.hover),
+                            #d0e8ff,
                             self.active
                         ));
                         return sdf.result;
@@ -193,13 +225,13 @@ live_design! {
                 draw_text: {
                     text_style: { font_size: 10.0 }
                     fn get_color(self) -> vec4 {
-                        return mix(#aaaacc, #ffffff, self.active);
+                        return mix(#555555, #333333, self.active);
                     }
                 }
 
                 draw_icon: {
                     fn get_color(self) -> vec4 {
-                        return mix(#666688, #8888aa, self.hover);
+                        return mix(#888888, #666666, self.hover);
                     }
                 }
             }
@@ -213,8 +245,8 @@ live_design! {
                         let sdf = Sdf2d::viewport(self.pos * self.rect_size);
                         sdf.rect(0., 0., self.rect_size.x, self.rect_size.y);
                         sdf.fill(mix(
-                            mix(#252538, #ffffff10, self.hover),
-                            #ffffff20,
+                            mix(#ffffff, #e8f4fd, self.hover),
+                            #d0e8ff,
                             self.active
                         ));
                         return sdf.result;
@@ -224,20 +256,20 @@ live_design! {
                 draw_text: {
                     text_style: { font_size: 10.0 }
                     fn get_color(self) -> vec4 {
-                        return mix(#e0e0e0, #ffffff, self.active);
+                        return mix(#333333, #222222, self.active);
                     }
                 }
 
                 draw_icon: {
                     fn get_color(self) -> vec4 {
-                        return mix(#4a90d9, #6ab0ff, self.hover);
+                        return mix(#4a90d9, #3080c9, self.hover);
                     }
                 }
             }
 
             filler: {
                 fn pixel(self) -> vec4 {
-                    return #252538;
+                    return #ffffff;
                 }
             }
         }

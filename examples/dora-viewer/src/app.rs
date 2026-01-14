@@ -16,48 +16,66 @@ live_design! {
     use crate::dataflow_tree::DataflowTreeFooter;
     use crate::log_panel::LogPanel;
 
-    // Splitter handle style
+    // Manrope font
+    FONT_MANROPE = {
+        font_family: {
+            latin = font("crate://self/resources/Manrope-Regular.ttf", 0.0, 0.0),
+        }
+    }
+
+    // Splitter handle style (light theme)
     Splitter = <View> {
-        width: 6, height: Fill
+        width: 4, height: Fill
         cursor: ColResize
         show_bg: true
-        draw_bg: { color: #3d3d5c }
+        draw_bg: { color: #e0e0e0 }
     }
 
     App = {{App}} {
         ui: <Window> {
-            window: { title: "Dora Viewer", inner_size: vec2(1600, 1000) }
+            window: { title: "DORA Viewer", inner_size: vec2(1600, 1000) }
             show_bg: true
-            draw_bg: { color: #1a1a2e }
+            draw_bg: { color: #f0f0f0 }
 
             body = <View> {
                 width: Fill, height: Fill, flow: Down
 
-                // Top toolbar
+                // Top toolbar (light theme)
                 toolbar = <View> {
-                    width: Fill, height: 40
-                    padding: { left: 12, right: 12 }, spacing: 8, align: { y: 0.5 }
-                    show_bg: true, draw_bg: { color: #252538 }
+                    width: Fill, height: 44
+                    padding: { left: 16, right: 16 }, spacing: 12, align: { y: 0.5 }
+                    show_bg: true, draw_bg: { color: #ffffff }
 
-                    <Label> { draw_text: { text_style: { font_size: 14.0 }, color: #e0e0e0 }, text: "Dora Viewer" }
+                    <Label> {
+                        draw_text: { text_style: <FONT_MANROPE> { font_size: 16.0 }, color: #333333 }
+                        text: "DORA Viewer"
+                    }
                     <View> { width: 20, height: 1 }
 
                     file_label = <Label> {
-                        draw_text: { text_style: { font_size: 10.0 }, color: #8080a0 },
+                        draw_text: { text_style: <FONT_MANROPE> { font_size: 11.0 }, color: #666666 }
                         text: "No file loaded"
                     }
 
                     <View> { width: Fill, height: 1 }
 
                     reload_btn = <Button> {
-                        width: Fit, height: 28, padding: { left: 12, right: 12 }
-                        draw_bg: { color: #3d3d5c }
+                        width: Fit, height: 32, padding: { left: 16, right: 16 }
+                        draw_bg: { color: #4A90D9, border_radius: 6.0 }
+                        draw_text: {
+                            text_style: <FONT_MANROPE> { font_size: 13.0 }
+                            fn get_color(self) -> vec4 { return #ffffff; }
+                        }
                         text: "Reload"
                     }
 
                     fit_view_btn = <Button> {
-                        width: Fit, height: 28, padding: { left: 12, right: 12 }
-                        draw_bg: { color: #3d3d5c }
+                        width: Fit, height: 32, padding: { left: 16, right: 16 }
+                        draw_bg: { color: #4A90D9, border_radius: 6.0 }
+                        draw_text: {
+                            text_style: <FONT_MANROPE> { font_size: 13.0 }
+                            fn get_color(self) -> vec4 { return #ffffff; }
+                        }
                         text: "Fit View"
                     }
                 }
@@ -68,16 +86,19 @@ live_design! {
 
                     // ========== LEFT PANEL: Dataflow Tree ==========
                     left_panel = <View> {
-                        width: 300, height: Fill, flow: Down
-                        show_bg: true, draw_bg: { color: #252538 }
+                        width: 280, height: Fill, flow: Down
+                        show_bg: true, draw_bg: { color: #ffffff }
 
                         // Panel header
                         <View> {
-                            width: Fill, height: 36
-                            padding: { left: 12, right: 12 }, align: { y: 0.5 }
-                            show_bg: true, draw_bg: { color: #2d2d48 }
+                            width: Fill, height: 40
+                            padding: { left: 16, right: 16 }, align: { y: 0.5 }
+                            show_bg: true, draw_bg: { color: #f8f8f8 }
 
-                            <Label> { draw_text: { text_style: { font_size: 11.0 }, color: #e0e0e0 }, text: "Dataflow Tree" }
+                            <Label> {
+                                draw_text: { text_style: <FONT_MANROPE> { font_size: 13.0 }, color: #333333 }
+                                text: "Dataflow Tree"
+                            }
                         }
 
                         // Search and filter header
@@ -99,44 +120,44 @@ live_design! {
                     }
                 }
 
-                // Bottom status bar
+                // Bottom status bar (light theme)
                 status_bar = <View> {
                     width: Fill, height: 28
                     padding: { left: 12, right: 12 }, align: { y: 0.5 }
-                    show_bg: true, draw_bg: { color: #252538 }
+                    show_bg: true, draw_bg: { color: #ffffff }
 
                     // Legend
                     <View> { flow: Right, spacing: 12, align: { y: 0.5 }
                         <View> { flow: Right, spacing: 4, align: { y: 0.5 }
                             <RoundedView> { width: 10, height: 10, draw_bg: { color: #4a90d9, border_radius: 2.0 } }
-                            <Label> { draw_text: { text_style: { font_size: 9.0 }, color: #8080a0 }, text: "MaaS" }
+                            <Label> { draw_text: { text_style: <FONT_MANROPE> { font_size: 9.0 }, color: #666666 }, text: "MaaS" }
                         }
                         <View> { flow: Right, spacing: 4, align: { y: 0.5 }
                             <RoundedView> { width: 10, height: 10, draw_bg: { color: #22c55e, border_radius: 2.0 } }
-                            <Label> { draw_text: { text_style: { font_size: 9.0 }, color: #8080a0 }, text: "TTS" }
+                            <Label> { draw_text: { text_style: <FONT_MANROPE> { font_size: 9.0 }, color: #666666 }, text: "TTS" }
                         }
                         <View> { flow: Right, spacing: 4, align: { y: 0.5 }
                             <RoundedView> { width: 10, height: 10, draw_bg: { color: #f59e0b, border_radius: 2.0 } }
-                            <Label> { draw_text: { text_style: { font_size: 9.0 }, color: #8080a0 }, text: "Bridge" }
+                            <Label> { draw_text: { text_style: <FONT_MANROPE> { font_size: 9.0 }, color: #666666 }, text: "Bridge" }
                         }
                         <View> { flow: Right, spacing: 4, align: { y: 0.5 }
                             <RoundedView> { width: 10, height: 10, draw_bg: { color: #ef4444, border_radius: 2.0 } }
-                            <Label> { draw_text: { text_style: { font_size: 9.0 }, color: #8080a0 }, text: "Controller" }
+                            <Label> { draw_text: { text_style: <FONT_MANROPE> { font_size: 9.0 }, color: #666666 }, text: "Controller" }
                         }
                         <View> { flow: Right, spacing: 4, align: { y: 0.5 }
                             <RoundedView> { width: 10, height: 10, draw_bg: { color: #8b5cf6, border_radius: 2.0 } }
-                            <Label> { draw_text: { text_style: { font_size: 9.0 }, color: #8080a0 }, text: "MoFA" }
+                            <Label> { draw_text: { text_style: <FONT_MANROPE> { font_size: 9.0 }, color: #666666 }, text: "MoFA" }
                         }
                         <View> { flow: Right, spacing: 4, align: { y: 0.5 }
                             <RoundedView> { width: 10, height: 10, draw_bg: { color: #06b6d4, border_radius: 2.0 } }
-                            <Label> { draw_text: { text_style: { font_size: 9.0 }, color: #8080a0 }, text: "Segmenter" }
+                            <Label> { draw_text: { text_style: <FONT_MANROPE> { font_size: 9.0 }, color: #666666 }, text: "Segmenter" }
                         }
                     }
 
                     <View> { width: Fill, height: 1 }
 
                     count_label = <Label> {
-                        draw_text: { text_style: { font_size: 10.0 }, color: #8080a0 },
+                        draw_text: { text_style: <FONT_MANROPE> { font_size: 10.0 }, color: #666666 },
                         text: "Nodes: 0 | Edges: 0 | Enabled: 0"
                     }
                 }

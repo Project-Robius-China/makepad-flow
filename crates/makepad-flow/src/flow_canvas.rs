@@ -81,36 +81,36 @@ live_design! {
         }
     }
 
-    // Node templates
+    // Node templates (light theme)
     NodeCamera = <RoundedView> {
         width: 180, height: Fit, flow: Down
-        draw_bg: { color: #2d2d44, border_radius: 8.0 }
+        draw_bg: { color: #ffffff, border_radius: 8.0, border_size: 1.0, border_color: #e0e0e0 }
         cursor: Hand
 
         header = <RoundedView> {
             width: Fill, height: 32
             padding: { left: 10, right: 10 }, align: { y: 0.5 }
-            draw_bg: { color: #3d3d5c, border_radius: 8.0 }
-            <Label> { draw_text: { text_style: { font_size: 11.0 }, color: #e0e0e0 }, text: "Camera" }
+            draw_bg: { color: #f8f8f8, border_radius: 8.0 }
+            <Label> { draw_text: { text_style: { font_size: 11.0 }, color: #333333 }, text: "Camera" }
         }
         <View> {
             width: Fill, height: Fit
             padding: 8, flow: Right, align: { x: 1.0, y: 0.5 }, spacing: 6
-            <Label> { draw_text: { text_style: { font_size: 10.0 }, color: #a0a0b0 }, text: "image" }
+            <Label> { draw_text: { text_style: { font_size: 10.0 }, color: #666666 }, text: "image" }
             output_port = <RoundedView> { width: 12, height: 12, draw_bg: { color: #22c55e, border_radius: 6.0 } }
         }
     }
 
     NodeProcessor = <RoundedView> {
         width: 180, height: Fit, flow: Down
-        draw_bg: { color: #2d2d44, border_radius: 8.0 }
+        draw_bg: { color: #ffffff, border_radius: 8.0, border_size: 1.0, border_color: #e0e0e0 }
         cursor: Hand
 
         header = <RoundedView> {
             width: Fill, height: 32
             padding: { left: 10, right: 10 }, align: { y: 0.5 }
-            draw_bg: { color: #3d3d5c, border_radius: 8.0 }
-            title = <Label> { draw_text: { text_style: { font_size: 11.0 }, color: #e0e0e0 }, text: "Processor" }
+            draw_bg: { color: #f8f8f8, border_radius: 8.0 }
+            title = <Label> { draw_text: { text_style: { font_size: 11.0 }, color: #333333 }, text: "Processor" }
         }
         <View> {
             width: Fill, height: Fit
@@ -118,27 +118,27 @@ live_design! {
             <View> {
                 width: Fill, height: 20, flow: Right, align: { y: 0.5 }, spacing: 6
                 input_port = <RoundedView> { width: 12, height: 12, draw_bg: { color: #3b82f6, border_radius: 6.0 } }
-                <Label> { draw_text: { text_style: { font_size: 10.0 }, color: #a0a0b0 }, text: "input" }
+                <Label> { draw_text: { text_style: { font_size: 10.0 }, color: #666666 }, text: "input" }
             }
             <View> {
                 width: Fill, height: 20, flow: Right, align: { x: 1.0, y: 0.5 }, spacing: 6
-                <Label> { draw_text: { text_style: { font_size: 10.0 }, color: #a0a0b0 }, text: "output" }
+                <Label> { draw_text: { text_style: { font_size: 10.0 }, color: #666666 }, text: "output" }
                 output_port = <RoundedView> { width: 12, height: 12, draw_bg: { color: #22c55e, border_radius: 6.0 } }
             }
         }
     }
 
-    // Flow canvas
+    // Flow canvas (light theme)
     pub FlowCanvas = {{FlowCanvas}} {
         width: Fill, height: Fill
         flow: Overlay
         show_bg: true
-        draw_bg: { color: #1e1e32 }
+        draw_bg: { color: #f0f0f0 }
         cursor: Arrow
 
         draw_text: {
             text_style: <THEME_FONT_REGULAR>{ font_size: 11.0 }
-            color: #e0e0e0
+            color: #333333
         }
     }
 }
@@ -1162,14 +1162,14 @@ impl Widget for FlowCanvas {
                 self.draw_edge_marker(cx, from, to, selected, edge_width, marker);
             }
 
-            // Draw edge label at midpoint
+            // Draw edge label at midpoint (light theme)
             if !label.is_empty() {
                 let mid = DVec2 { x: (from.x + to.x) / 2.0, y: (from.y + to.y) / 2.0 };
                 self.draw_text.text_style.font_size = 9.0;
-                self.draw_text.color = if selected { vec4(1.0, 0.9, 0.4, 1.0) } else { vec4(0.7, 0.7, 0.8, 1.0) };
+                self.draw_text.color = if selected { vec4(0.2, 0.4, 0.7, 1.0) } else { vec4(0.4, 0.4, 0.45, 1.0) };
                 // Draw label background
                 let label_width = label.len() as f64 * 6.0;
-                self.draw_node_bg.color = vec4(0.15, 0.15, 0.22, 0.9);
+                self.draw_node_bg.color = vec4(1.0, 1.0, 1.0, 0.95); // White background
                 self.draw_node_bg.draw_abs(cx, Rect {
                     pos: DVec2 { x: mid.x - label_width / 2.0 - 4.0, y: mid.y - 8.0 },
                     size: DVec2 { x: label_width + 8.0, y: 16.0 },
@@ -1562,25 +1562,29 @@ impl FlowCanvas {
         let size = DVec2 { x: node.width * self.zoom, y: node.height * self.zoom };
         let center = DVec2 { x: pos.x + size.x * 0.5, y: pos.y + size.y * 0.5 };
 
-        // Node background color - use category colors if not default
+        // Node background color - light theme (white nodes with colored headers)
         let (bg_color, header_color) = if node.category == NodeCategory::Default {
             if selected {
-                (vec4(0.25, 0.30, 0.50, 1.0), vec4(0.30, 0.35, 0.55, 1.0))
+                // Light blue tint when selected
+                (vec4(0.93, 0.96, 1.0, 1.0), vec4(0.90, 0.93, 0.98, 1.0))
             } else {
-                (vec4(0.18, 0.18, 0.27, 1.0), vec4(0.24, 0.24, 0.36, 1.0))
+                // White background, light gray header
+                (vec4(1.0, 1.0, 1.0, 1.0), vec4(0.97, 0.97, 0.97, 1.0))
             }
         } else {
+            // For category nodes, use lighter pastel versions
             let base_color = node.category.color();
             let head_color = node.category.header_color();
             if selected {
-                // Brighten when selected
-                (vec4(base_color.x * 1.2, base_color.y * 1.2, base_color.z * 1.2, 1.0),
-                 vec4(head_color.x * 1.2, head_color.y * 1.2, head_color.z * 1.2, 1.0))
+                // Slightly darker tint when selected
+                (vec4(base_color.x * 0.95 + 0.05, base_color.y * 0.95 + 0.05, base_color.z * 0.95 + 0.05, 1.0),
+                 vec4(head_color.x * 0.95, head_color.y * 0.95, head_color.z * 0.95, 1.0))
             } else {
-                (base_color, head_color)
+                // Light pastel body with category header
+                (vec4(1.0, 1.0, 1.0, 1.0), head_color)
             }
         };
-        let border_color = vec4(1.0, 0.8, 0.3, 0.8);
+        let border_color = vec4(0.29, 0.56, 0.85, 1.0); // #4A90D9
 
         match shape {
             NodeShape::RoundedRect => {
@@ -1588,7 +1592,7 @@ impl FlowCanvas {
                 let corner_r = (8.0 * self.zoom) as f32;
                 let header_h = 32.0 * self.zoom;
                 let bw = if selected { border_width.max(2.0) as f32 } else { border_width as f32 };
-                let bc = if selected { border_color } else { vec4(0.4, 0.4, 0.5, 0.6) };
+                let bc = if selected { border_color } else { vec4(0.88, 0.88, 0.88, 1.0) }; // #e0e0e0
                 let inset = bw as f64;
 
                 // 1. Draw body (below header)
@@ -1618,7 +1622,7 @@ impl FlowCanvas {
                 let corner_r = (8.0 * self.zoom) as f32;
                 let header_h = 32.0 * self.zoom;
                 let bw = if selected { border_width.max(2.0) as f32 } else { border_width as f32 };
-                let bc = if selected { border_color } else { vec4(0.4, 0.4, 0.5, 0.6) };
+                let bc = if selected { border_color } else { vec4(0.88, 0.88, 0.88, 1.0) }; // #e0e0e0
                 let inset = bw as f64;
 
                 // 1. Draw body with rounded BOTTOM corners only (straight top)
@@ -1951,15 +1955,15 @@ impl FlowCanvas {
         let num_items = if is_multi { 12 } else { 11 }; // +1 for multi header
         let menu_height = item_height * num_items as f64 + padding * 2.0;
 
-        // Menu background
-        self.draw_node_bg.color = vec4(0.16, 0.16, 0.22, 0.98);
+        // Menu background (light theme)
+        self.draw_node_bg.color = vec4(1.0, 1.0, 1.0, 0.98);
         self.draw_node_bg.draw_abs(cx, Rect {
             pos,
             size: DVec2 { x: menu_width, y: menu_height },
         });
 
-        // Border
-        self.draw_node_bg.color = vec4(0.3, 0.3, 0.4, 1.0);
+        // Border (light theme)
+        self.draw_node_bg.color = vec4(0.88, 0.88, 0.88, 1.0); // #e0e0e0
         // Top
         self.draw_node_bg.draw_abs(cx, Rect { pos, size: DVec2 { x: menu_width, y: 1.0 } });
         // Bottom
@@ -1977,47 +1981,47 @@ impl FlowCanvas {
 
         let mut y = pos.y + padding;
 
-        // Multi-selection header
+        // Multi-selection header (light theme)
         if is_multi {
             self.draw_text.text_style.font_size = 9.0;
-            self.draw_text.color = vec4(0.4, 0.7, 0.9, 1.0);
+            self.draw_text.color = vec4(0.29, 0.56, 0.85, 1.0); // #4A90D9
             self.draw_text.draw_abs(cx, DVec2 { x: pos.x + 8.0, y }, &format!("Apply to {} nodes", multi_count));
             y += item_height;
         }
 
-        // Section label - Shape
+        // Section label - Shape (light theme)
         self.draw_text.text_style.font_size = 9.0;
-        self.draw_text.color = vec4(0.5, 0.5, 0.6, 1.0);
+        self.draw_text.color = vec4(0.6, 0.6, 0.6, 1.0); // #999999
         self.draw_text.draw_abs(cx, DVec2 { x: pos.x + 8.0, y }, "Shape");
         y += item_height * 0.8;
 
-        // Shape items
+        // Shape items (light theme)
         let shape_items = ["Rounded Rect", "Double Rounded", "Rectangle", "Round", "Diamond"];
         self.draw_text.text_style.font_size = 10.0;
-        self.draw_text.color = vec4(0.85, 0.85, 0.9, 1.0);
+        self.draw_text.color = vec4(0.2, 0.2, 0.2, 1.0); // #333333
         for label in shape_items {
             self.draw_text.draw_abs(cx, DVec2 { x: pos.x + 12.0, y }, label);
             y += item_height;
         }
 
-        // Divider
-        self.draw_node_bg.color = vec4(0.3, 0.3, 0.4, 0.5);
+        // Divider (light theme)
+        self.draw_node_bg.color = vec4(0.88, 0.88, 0.88, 1.0); // #e0e0e0
         self.draw_node_bg.draw_abs(cx, Rect {
             pos: DVec2 { x: pos.x + 8.0, y: y + 2.0 },
             size: DVec2 { x: menu_width - 16.0, y: 1.0 }
         });
         y += item_height * 0.5;
 
-        // Section label - Border
+        // Section label - Border (light theme)
         self.draw_text.text_style.font_size = 9.0;
-        self.draw_text.color = vec4(0.5, 0.5, 0.6, 1.0);
+        self.draw_text.color = vec4(0.6, 0.6, 0.6, 1.0); // #999999
         self.draw_text.draw_abs(cx, DVec2 { x: pos.x + 8.0, y }, "Border");
         y += item_height * 0.8;
 
-        // Border items
+        // Border items (light theme)
         let border_items = ["1px", "2px", "3px", "4px"];
         self.draw_text.text_style.font_size = 10.0;
-        self.draw_text.color = vec4(0.85, 0.85, 0.9, 1.0);
+        self.draw_text.color = vec4(0.2, 0.2, 0.2, 1.0); // #333333
         for label in border_items {
             self.draw_text.draw_abs(cx, DVec2 { x: pos.x + 12.0, y }, label);
             y += item_height;
@@ -2329,15 +2333,15 @@ impl FlowCanvas {
             (0, 2, true)
         };
 
-        // Menu background
-        self.draw_node_bg.color = vec4(0.16, 0.16, 0.22, 0.98);
+        // Menu background (light theme)
+        self.draw_node_bg.color = vec4(1.0, 1.0, 1.0, 0.98);
         self.draw_node_bg.draw_abs(cx, Rect {
             pos,
             size: DVec2 { x: menu_width, y: menu_height },
         });
 
-        // Border
-        self.draw_node_bg.color = vec4(0.3, 0.3, 0.4, 1.0);
+        // Border (light theme)
+        self.draw_node_bg.color = vec4(0.88, 0.88, 0.88, 1.0); // #e0e0e0
         self.draw_node_bg.draw_abs(cx, Rect { pos, size: DVec2 { x: menu_width, y: 1.0 } });
         self.draw_node_bg.draw_abs(cx, Rect {
             pos: DVec2 { x: pos.x, y: pos.y + menu_height - 1.0 },
@@ -2352,79 +2356,79 @@ impl FlowCanvas {
         let mut y = pos.y + padding;
         let label_height = item_height * 0.8;
 
-        // Section label - Style
+        // Section label - Style (light theme)
         self.draw_text.text_style.font_size = 9.0;
-        self.draw_text.color = vec4(0.5, 0.5, 0.6, 1.0);
+        self.draw_text.color = vec4(0.6, 0.6, 0.6, 1.0); // #999999
         self.draw_text.draw_abs(cx, DVec2 { x: pos.x + 8.0, y }, "Style");
         y += label_height;
 
-        // Style items
+        // Style items (light theme)
         let style_items = ["Solid", "Dashed", "Dotted"];
         for (i, label) in style_items.iter().enumerate() {
             let is_selected = current_style == i as i32;
             self.draw_text.text_style.font_size = 10.0;
             self.draw_text.color = if is_selected {
-                vec4(0.4, 0.8, 1.0, 1.0) // Highlight selected
+                vec4(0.29, 0.56, 0.85, 1.0) // #4A90D9 - Highlight selected
             } else {
-                vec4(0.85, 0.85, 0.9, 1.0)
+                vec4(0.2, 0.2, 0.2, 1.0) // #333333
             };
             let prefix = if is_selected { "> " } else { "  " };
             self.draw_text.draw_abs(cx, DVec2 { x: pos.x + 8.0, y }, &format!("{}{}", prefix, label));
             y += item_height;
         }
 
-        // Divider
-        self.draw_node_bg.color = vec4(0.3, 0.3, 0.4, 0.5);
+        // Divider (light theme)
+        self.draw_node_bg.color = vec4(0.88, 0.88, 0.88, 1.0); // #e0e0e0
         self.draw_node_bg.draw_abs(cx, Rect {
             pos: DVec2 { x: pos.x + 8.0, y: y + 2.0 },
             size: DVec2 { x: menu_width - 16.0, y: 1.0 }
         });
         y += item_height * 0.5;
 
-        // Section label - Width
+        // Section label - Width (light theme)
         self.draw_text.text_style.font_size = 9.0;
-        self.draw_text.color = vec4(0.5, 0.5, 0.6, 1.0);
+        self.draw_text.color = vec4(0.6, 0.6, 0.6, 1.0); // #999999
         self.draw_text.draw_abs(cx, DVec2 { x: pos.x + 8.0, y }, "Width");
         y += label_height;
 
-        // Width items
+        // Width items (light theme)
         let width_items = ["1px", "2px", "3px", "4px"];
         for (i, label) in width_items.iter().enumerate() {
             let is_selected = current_width == (i + 1) as i32;
             self.draw_text.text_style.font_size = 10.0;
             self.draw_text.color = if is_selected {
-                vec4(0.4, 0.8, 1.0, 1.0)
+                vec4(0.29, 0.56, 0.85, 1.0) // #4A90D9
             } else {
-                vec4(0.85, 0.85, 0.9, 1.0)
+                vec4(0.2, 0.2, 0.2, 1.0) // #333333
             };
             let prefix = if is_selected { "> " } else { "  " };
             self.draw_text.draw_abs(cx, DVec2 { x: pos.x + 8.0, y }, &format!("{}{}", prefix, label));
             y += item_height;
         }
 
-        // Divider
-        self.draw_node_bg.color = vec4(0.3, 0.3, 0.4, 0.5);
+        // Divider (light theme)
+        self.draw_node_bg.color = vec4(0.88, 0.88, 0.88, 1.0); // #e0e0e0
         self.draw_node_bg.draw_abs(cx, Rect {
             pos: DVec2 { x: pos.x + 8.0, y: y + 2.0 },
             size: DVec2 { x: menu_width - 16.0, y: 1.0 }
         });
         y += item_height * 0.5;
 
-        // Section label - Animation
+        // Section label - Animation (light theme)
         self.draw_text.text_style.font_size = 9.0;
-        self.draw_text.color = vec4(0.5, 0.5, 0.6, 1.0);
+        self.draw_text.color = vec4(0.6, 0.6, 0.6, 1.0); // #999999
         self.draw_text.draw_abs(cx, DVec2 { x: pos.x + 8.0, y }, "Animation");
         y += label_height;
 
-        // Animation items
+        // Animation items (light theme)
         let anim_items = ["On", "Off"];
         for (i, label) in anim_items.iter().enumerate() {
             let is_selected = (i == 0) == current_animated;
             self.draw_text.text_style.font_size = 10.0;
             self.draw_text.color = if is_selected {
-                vec4(0.4, 0.8, 1.0, 1.0)
+                vec4(0.29, 0.56, 0.85, 1.0) // #4A90D9
             } else {
-                vec4(0.85, 0.85, 0.9, 1.0)
+                vec4(0.2, 0.2, 0.2, 1.0) // #333333
             };
             let prefix = if is_selected { "> " } else { "  " };
             self.draw_text.draw_abs(cx, DVec2 { x: pos.x + 8.0, y }, &format!("{}{}", prefix, label));
