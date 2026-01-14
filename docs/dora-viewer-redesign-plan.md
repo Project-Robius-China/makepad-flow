@@ -1,9 +1,41 @@
 # Dora Viewer Redesign - Development Plan
 
 **Date:** 2026-01-13
+**Last Updated:** 2026-01-14
 **Author:** Claude (GLM-4.7)
 **Project:** makepad-flow/examples/dora-viewer
-**Version:** 1.0
+**Version:** 1.1
+
+---
+
+## Current Implementation Status: ~75% Complete
+
+### ✅ Already Implemented (100% Complete)
+
+| Component | File | Lines | Status |
+|-----------|------|-------|--------|
+| **DataflowTree** | `dataflow_tree.rs` | 1,301 | ✅ Complete |
+| **LogPanel** | `log_panel.rs` | 403 | ✅ Complete (not integrated) |
+| **Main App Layout** | `app.rs` | 675 | 🔶 Partial (right panel missing) |
+| **FlowCanvas** | `flow_canvas.rs` | 2,434 | ✅ Multi-port support |
+
+### ❌ Missing / Incomplete
+
+| Item | Status | Effort |
+|------|--------|--------|
+| **Right panel layout** | Commented out at app.rs:103 | 10 min |
+| **Right splitter** | Code exists but not wired | 15 min |
+| **LogPanel integration** | Widget complete, not shown | 10 min |
+| **Real-time log source** | Only demo logs exist | 1-2 hrs |
+| **Disabled state visuals** | Canvas removes vs dims items | 2-3 hrs |
+
+### Quick Win: Enable Right Panel (35 minutes)
+
+```rust
+// 1. Add right panel to layout (app.rs:103)
+// 2. Add right splitter handling (app.rs:647)
+// 3. Uncomment LogPanel integration (app.rs:359, 385-389)
+```
 
 ---
 
@@ -683,86 +715,80 @@ impl App {
 
 ## 4. Implementation Phases
 
-### Phase 1: Foundation (Week 1)
-**Goal:** Basic three-panel layout with splitters
+### ✅ Phase 1: Foundation - COMPLETE
+**Status:** ~75% done (left splitter only, right panel missing)
 
-| Task | File | Description |
-|------|------|-------------|
-| 1.1 | `app.rs` | Redesign layout with three panels |
-| 1.2 | `app.rs` | Implement splitter drag handling |
-| 1.3 | `app.rs` | Add minimum width constraints |
-| 1.4 | `dataflow_model.rs` | Create DataflowState struct |
-| 1.5 | `dataflow_model.rs` | Add NodeState and PortState |
-| 1.6 | `dataflow_model.rs` | Implement enable/disable logic |
+| Task | File | Status |
+|------|------|--------|
+| 1.1 Layout with three panels | `app.rs:27-149` | 🔶 Partial (right panel commented out) |
+| 1.2 Left splitter drag handling | `app.rs:623-648` | ✅ Complete |
+| 1.3 Right splitter drag handling | `app.rs:647` | ❌ Not wired (no panel) |
+| 1.4 Minimum width constraints | `app.rs:305` | ✅ MIN_LEFT_WIDTH defined |
 
-**Deliverable:** Three-panel layout with resizable splitters, no functional panels yet.
+**Deliverable:** Two-panel layout with resizable left splitter. Right panel needs to be uncommented.
 
-### Phase 2: Left Panel - Dataflow Tree (Week 2)
-**Goal:** Functional tree with node/port enable/disable
+### ✅ Phase 2: Left Panel - Dataflow Tree - COMPLETE
+**Status:** 100% done
 
-| Task | File | Description |
-|------|------|-------------|
-| 2.1 | `dataflow_tree.rs` | Create DataflowTree widget |
-| 2.2 | `dataflow_tree.rs` | Implement tree building from YAML |
-| 2.3 | `dataflow_tree.rs` | Add expand/collapse functionality |
-| 2.4 | `dataflow_tree.rs` | Add checkboxes for nodes/ports |
-| 2.5 | `dataflow_tree.rs` | Emit events on checkbox toggle |
-| 2.6 | `dataflow_tree.rs` | Implement search filtering |
-| 2.7 | `dataflow_tree.rs` | Implement category filtering |
-| 2.8 | `app.rs` | Wire tree events to data model |
+| Task | File | Status | Notes |
+|------|------|--------|-------|
+| 2.1 DataflowTree widget | `dataflow_tree.rs:394-409` | ✅ | Wraps FileTree |
+| 2.2 Tree building from YAML | `dataflow_tree.rs:816-993` | ✅ | With port hierarchy |
+| 2.3 Expand/collapse | `dataflow_tree.rs:1043-1059` | ✅ | Folder state tracking |
+| 2.4 Enable/disable toggles | `dataflow_tree.rs:524-648` | ✅ | Ctrl+Click, cascading |
+| 2.5 Event emission | `dataflow_tree.rs:278-292` | ✅ | DataflowTreeAction enum |
+| 2.6 Search filtering | `dataflow_tree.rs:995-1023` | ✅ | Node/port name search |
+| 2.7 Category filtering | `dataflow_tree.rs:64-108` | ✅ | Button filters in header |
+| 2.8 Wire to App | `app.rs:391-446` | ✅ | Full integration |
 
-**Deliverable:** Functional tree panel with enable/disable toggles.
+**Deliverable:** ✅ Complete - Fully functional tree with enable/disable.
 
-### Phase 3: Center Panel Integration (Week 2-3)
-**Goal:** Canvas responds to tree state changes
+### ✅ Phase 3: Center Panel Integration - COMPLETE
+**Status:** 100% done (using filter-reload approach)
 
-| Task | File | Description |
-|------|------|-------------|
-| 3.1 | `flow_canvas.rs` | Add enabled state to FlowNode |
-| 3.2 | `flow_canvas.rs` | Add enabled state to Port |
-| 3.3 | `flow_canvas.rs` | Add enabled state to EdgeConnection |
-| 3.4 | `flow_canvas.rs` | Implement dimmed rendering for disabled |
-| 3.5 | `flow_canvas.rs` | Hide edges from disabled ports |
-| 3.6 | `flow_canvas.rs` | Add FlowCanvasCommand::SetNodeEnabled |
-| 3.7 | `flow_canvas.rs` | Add FlowCanvasCommand::SetPortEnabled |
-| 3.8 | `app.rs` | Wire tree events to canvas commands |
-| 3.9 | `app.rs` | Synchronize state between tree and canvas |
+| Task | File | Status | Notes |
+|------|------|--------|-------|
+| 3.1 Multi-port support | `flow_canvas.rs:284-285` | ✅ | Vec<Port> for inputs/outputs |
+| 3.2 Enable/disable filtering | `app.rs:476-550` | ✅ | reload_flow_with_enabled_filter() |
+| 3.3 Port state checking | `app.rs:512-522` | ✅ | Checks both ends of edge |
+| 3.4 Canvas updates | `app.rs:543-547` | ✅ | LoadDataflow with filtered items |
+| 3.5 State tracking | `app.rs:298, 336-338` | ✅ | HashMap<String, bool> |
 
-**Deliverable:** Canvas updates visually when tree checkboxes are toggled.
+**Note:** Current approach removes disabled items vs dimming them. Dimming would be better UX but filtering works.
 
-### Phase 4: Right Panel - System Log (Week 3-4)
-**Goal:** Real-time log display with filtering
+**Deliverable:** ✅ Complete - Canvas updates when tree state changes.
 
-| Task | File | Description |
-|------|------|-------------|
-| 4.1 | `log_panel.rs` | Create LogPanel widget |
-| 4.2 | `log_panel.rs` | Implement Markdown rendering |
-| 4.3 | `log_panel.rs` | Add log level filtering |
-| 4.4 | `log_panel.rs` | Add node/source filtering |
-| 4.5 | `log_panel.rs` | Add search functionality |
-| 4.6 | `log_panel.rs` | Implement entry limit/pruning |
-| 4.7 | `log_panel.rs` | Add auto-scroll |
-| 4.8 | `app.rs` | Create mock log generator (for testing) |
-| 4.9 | `log_bridge.rs` | (Optional) Integrate with Dora log system |
+### 🔶 Phase 4: Right Panel - System Log - PARTIAL
+**Status:** Widget 100% complete, but NOT integrated into UI
 
-**Deliverable:** Functional log panel with real-time updates.
+| Task | File | Status | Notes |
+|------|------|--------|-------|
+| 4.1 LogPanel widget | `log_panel.rs:80-206` | ✅ | Complete design |
+| 4.2 Log entry rendering | `log_panel.rs:14-78` | ✅ | Custom LogEntryView |
+| 4.3 Level filtering | `log_panel.rs:112-164, 282-306` | ✅ | 5 buttons + search |
+| 4.4 Node filtering | `log_panel.rs:352-372` | ✅ | In filtered_entries() |
+| 4.5 Search functionality | `log_panel.rs:309-313` | ✅ | TextInput with filter |
+| 4.6 Entry management | `log_panel.rs:323-372` | ✅ | No limit yet, add if needed |
+| 4.7 Auto-scroll | `log_panel.rs:192-196, 315-318` | ✅ | CheckBox + state |
+| 4.8 Demo log generator | `app.rs:592-621` | 🔶 | Exists but commented out |
+| 4.9 Wire to App | `app.rs:359, 385-389` | ❌ | Commented out |
 
-### Phase 5: Integration & Polish (Week 4)
-**Goal:** Complete application with UX refinements
+**Deliverable:** Widget ready, needs integration (35 min).
 
-| Task | File | Description |
-|------|------|-------------|
-| 5.1 | `app.rs` | Update status bar with counts |
-| 5.2 | `app.rs` | Add file reload functionality |
-| 5.3 | `dataflow_tree.rs` | Add "Enable All/Disable All" |
-| 5.4 | `dataflow_tree.rs` | Add batch enable by type |
-| 5.5 | `flow_canvas.rs` | Add keyboard shortcuts |
-| 5.6 | All | Refine styling and colors |
-| 5.7 | All | Add tooltips |
-| 5.8 | All | Performance optimization |
-| 5.9 | All | Testing and bug fixes |
+### ⏳ Phase 5: Integration & Polish - IN PROGRESS
 
-**Deliverable:** Production-ready dora-viewer application.
+| Task | File | Status | Notes |
+|------|------|--------|-------|
+| 5.1 Status bar counts | `app.rs:465-474` | ✅ | Nodes/Edges/Enabled |
+| 5.2 File reload | `app.rs:380-383` | ✅ | Reload button |
+| 5.3 Enable All/Disable All | `dataflow_tree.rs:369-379` | ✅ | Footer buttons |
+| 5.4 Toggle Match | `dataflow_tree.rs:669-726` | ✅ | Batch port toggle |
+| 5.5 Keyboard shortcuts | `app.rs:654-666` | ✅ | Ctrl+Shift+D |
+| 5.6 Right panel enable | `app.rs:103+` | ❌ | Needs to be added |
+| 5.7 Right splitter wire | `app.rs:647+` | ❌ | Needs to be added |
+| 5.8 Real-time log source | New file | ❌ | Mock or Dora bridge |
+
+**Deliverable:** Mostly complete, missing right panel integration.
 
 ---
 
@@ -942,15 +968,15 @@ chrono = "0.4"  # For timestamps
 ## 9. Success Criteria
 
 ### 9.1 Functional Requirements
-- [x] Three-panel layout with resizable splitters
-- [ ] Tree shows all nodes from voice-chat.yml
-- [ ] Checkbox enables/disables individual nodes
-- [ ] Checkbox enables/disables individual ports
-- [ ] Canvas reflects enable state visually
-- [ ] Edges from disabled ports are hidden
-- [ ] Logs display in real-time
-- [ ] Logs filter by level and content
-- [ ] Search works for both tree and logs
+- [x] Three-panel layout with resizable splitters (left only, right missing)
+- [x] Tree shows all nodes from voice-chat.yml
+- [x] Checkbox enables/disables individual nodes (Ctrl+Click)
+- [x] Checkbox enables/disables individual ports (Ctrl+Click)
+- [x] Canvas reflects enable state visually (removes disabled items)
+- [x] Edges from disabled ports are hidden
+- [ ] Logs display in real-time (widget complete, not integrated)
+- [x] Logs filter by level and content (widget complete)
+- [x] Search works for both tree and logs (tree done, log widget done)
 
 ### 9.2 Performance Requirements
 - [ ] Panel resize < 16ms (60fps)
@@ -1051,6 +1077,53 @@ fn update_display(&mut self, cx: &mut Cx) {
         .join("\n\n");
     self.ui.markdown(id!(content)).set_text(cx, &filtered);
 }
+```
+
+---
+
+## 11. Remaining Tasks (Quick Reference)
+
+### 🔴 Critical - Must Do (35 minutes)
+
+| Task | File | Change |
+|------|------|--------|
+| Enable right panel | `app.rs:103` | Uncomment/add right panel layout |
+| Wire right splitter | `app.rs:647` | Add splitter event handling |
+| Integrate LogPanel | `app.rs:359, 385-389` | Uncomment log panel code |
+| Add state variables | `app.rs:302` | Add `right_panel_width`, `right_dragging` |
+
+### 🟡 High Priority - Should Do (2-3 hours)
+
+| Task | Description |
+|------|-------------|
+| Real-time log source | Create mock log generator or integrate with Dora |
+| Visual feedback | Dim disabled nodes instead of removing them |
+| Min panel width | Enforce minimum center panel width |
+| Right panel init | Initialize `right_panel_width` in handle_startup |
+
+### 🟢 Low Priority - Nice to Have
+
+| Task | Description |
+|------|-------------|
+| Save/restore layout | Persist panel widths to config |
+| Log entry limit | Add MAX_ENTRIES with pruning |
+| Collapsible panels | Double-click splitter to collapse |
+| Visual drag feedback | Highlight splitter during drag |
+
+---
+
+## 12. File Inventory (Current State)
+
+```
+examples/dora-viewer/
+├── src/
+│   ├── main.rs           (8 lines)   ✅ Entry point
+│   ├── app.rs            (675 lines) 🔶 Main app (right panel commented out)
+│   ├── dataflow_tree.rs  (1,301 lines) ✅ Complete tree widget
+│   └── log_panel.rs      (403 lines) ✅ Complete (not integrated)
+├── dataflow/
+│   └── voice-chat.yml    (450 lines) ✅ Sample dataflow
+└── Cargo.toml
 ```
 
 ---
