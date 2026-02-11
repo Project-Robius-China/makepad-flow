@@ -487,7 +487,7 @@ impl MatchEvent for App {
 
         // Adjust toolbar padding for macOS window controls (traffic lights)
         if let OsType::Macos = cx.os_type() {
-            self.ui.view(id!(toolbar)).apply_over(cx, live! {
+            self.ui.view(&[id!(toolbar)]).apply_over(cx, live! {
                 padding: { left: 80.0, right: 16.0 }
             });
         }
