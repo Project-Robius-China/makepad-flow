@@ -2,12 +2,6 @@ use makepad_widgets::*;
 use std::collections::HashSet;
 use crate::constants::{node, port, edge, canvas};
 
-/// Canvas constants for zoom bounds and other magic numbers
-mod canvas {
-    pub const MIN_ZOOM: f64 = 0.25;
-    pub const MAX_ZOOM: f64 = 4.0;
-}
-
 live_design! {
     use link::theme::*;
     use link::shaders::*;
@@ -83,6 +77,35 @@ live_design! {
             // Bottom edge rect between corners - overlaps with circles
             sdf.rect(r - 1.0, h - r - 1.0, w - r * 2.0 + 2.0, r + 1.0);
             sdf.fill(self.color);
+
+            return sdf.result;
+        }
+    }
+
+    // Circle shader for ports (SDF-based, with hover glow)
+    DrawPortCircle = {{DrawPortCircle}} {
+        fn pixel(self) -> vec4 {
+            let sdf = Sdf2d::viewport(self.pos * self.rect_size);
+            let cx = self.rect_size.x * 0.5;
+            let cy = self.rect_size.y * 0.5;
+            let r = min(cx, cy);
+
+            // Outer glow when hovered
+            if self.hover > 0.01 {
+                let glow_r = r + 3.0 * self.hover;
+                sdf.circle(cx, cy, glow_r);
+                let glow_alpha = 0.35 * self.hover;
+                sdf.fill(vec4(self.color.x, self.color.y, self.color.z, glow_alpha));
+            }
+
+            // Main circle
+            sdf.circle(cx, cy, r - 0.5);
+            sdf.fill(self.color);
+
+            // Inner highlight for depth
+            sdf.circle(cx - r * 0.2, cy - r * 0.2, r * 0.35);
+            let hi = 0.25 + 0.15 * self.hover;
+            sdf.fill(vec4(1.0, 1.0, 1.0, hi));
 
             return sdf.result;
         }
@@ -186,6 +209,15 @@ pub struct DrawRoundedBottomRect {
     #[deref] pub draw_super: DrawQuad,
     #[live] pub color: Vec4,
     #[live] pub radius: f32,
+}
+
+// Circle shader for ports with hover glow
+#[derive(Live, LiveHook, LiveRegister)]
+#[repr(C)]
+pub struct DrawPortCircle {
+    #[deref] pub draw_super: DrawQuad,
+    #[live] pub color: Vec4,
+    #[live] pub hover: f32,
 }
 
 // Node shape types
@@ -524,6 +556,7 @@ pub struct FlowCanvas {
     #[live] draw_rounded_rect: DrawRoundedRect,
     #[live] draw_rounded_top_rect: DrawRoundedTopRect,
     #[live] draw_rounded_bottom_rect: DrawRoundedBottomRect,
+    #[live] draw_port_circle: DrawPortCircle,
     #[live] draw_text: DrawText,
 
     // Configurable visual properties (can be set via DSL)
@@ -551,6 +584,7 @@ pub struct FlowCanvas {
     #[rust] context_menu_pos: DVec2, // Position to show context menu
     #[rust] undo_stack: Vec<HistoryEntry>,   // Undo history
     #[rust] redo_stack: Vec<HistoryEntry>,   // Redo history
+    #[rust] hovered_port: Option<(usize, bool, usize)>, // (node_idx, is_output, port_idx)
 }
 
 impl Default for DragState {
@@ -1055,6 +1089,76 @@ impl Widget for FlowCanvas {
                 cx.set_cursor(MouseCursor::Arrow);
             }
 
+            Hit::FingerHoverOver(he) => {
+                let local = self.screen_to_canvas(he.abs, area_rect);
+                let old_hover = self.hovered_port;
+                self.hovered_port = None;
+
+                // Check all ports for hover
+                for (ni, node) in self.nodes.iter().enumerate() {
+                    // Check input ports
+                    for (pi, _port) in node.input_ports.iter().enumerate() {
+                        let port_pos = node.input_port_pos(pi);
+                        let dx = local.x - port_pos.x;
+                        let dy = local.y - port_pos.y;
+                        if dx * dx + dy * dy <= port::HIT_SIZE * port::HIT_SIZE * 0.25 {
+                            self.hovered_port = Some((ni, false, pi));
+                            cx.set_cursor(MouseCursor::Hand);
+                            break;
+                        }
+                    }
+                    if self.hovered_port.is_some() { break; }
+
+                    // Check output ports
+                    for (pi, _port) in node.output_ports.iter().enumerate() {
+                        let port_pos = node.output_port_pos(pi);
+                        let dx = local.x - port_pos.x;
+                        let dy = local.y - port_pos.y;
+                        if dx * dx + dy * dy <= port::HIT_SIZE * port::HIT_SIZE * 0.25 {
+                            self.hovered_port = Some((ni, true, pi));
+                            cx.set_cursor(MouseCursor::Hand);
+                            break;
+                        }
+                    }
+                    if self.hovered_port.is_some() { break; }
+                }
+
+                // Also check legacy single ports for Round/Diamond shapes
+                if self.hovered_port.is_none() {
+                    for (ni, node) in self.nodes.iter().enumerate() {
+                        if matches!(node.shape, NodeShape::Round | NodeShape::Diamond) {
+                            if node.node_type.has_input() {
+                                let port_rect = node.input_port_rect();
+                                if port_rect.contains(local) {
+                                    self.hovered_port = Some((ni, false, 0));
+                                    cx.set_cursor(MouseCursor::Hand);
+                                    break;
+                                }
+                            }
+                            if node.node_type.has_output() {
+                                let port_rect = node.output_port_rect();
+                                if port_rect.contains(local) {
+                                    self.hovered_port = Some((ni, true, 0));
+                                    cx.set_cursor(MouseCursor::Hand);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if old_hover != self.hovered_port {
+                    self.view.redraw(cx);
+                }
+            }
+
+            Hit::FingerHoverOut(_) => {
+                if self.hovered_port.is_some() {
+                    self.hovered_port = None;
+                    self.view.redraw(cx);
+                }
+            }
+
             _ => {}
         }
 
@@ -1215,12 +1319,12 @@ impl Widget for FlowCanvas {
 
         // Draw nodes - clone to avoid borrow issues, use each node's own shape and border
         let nodes_to_draw: Vec<_> = self.nodes.iter().cloned().enumerate()
-            .map(|(i, node)| (node, self.selected_nodes.contains(&i)))
+            .map(|(i, node)| (i, node, self.selected_nodes.contains(&i)))
             .collect();
-        for (node, is_selected) in nodes_to_draw {
+        for (idx, node, is_selected) in nodes_to_draw {
             let shape = node.shape;
             let border_width = node.border_width as f64;
-            self.draw_node(cx, &node, is_selected, shape, border_width);
+            self.draw_node(cx, &node, is_selected, shape, border_width, idx);
         }
 
         // Draw selection box if dragging
@@ -1569,7 +1673,7 @@ impl FlowCanvas {
         false
     }
 
-    fn draw_node(&mut self, cx: &mut Cx2d, node: &FlowNode, selected: bool, shape: NodeShape, border_width: f64) {
+    fn draw_node(&mut self, cx: &mut Cx2d, node: &FlowNode, selected: bool, shape: NodeShape, border_width: f64, node_idx: usize) {
         let pos = self.canvas_to_screen_pt(DVec2 { x: node.x, y: node.y });
         let size = DVec2 { x: node.width * self.zoom, y: node.height * self.zoom };
         let center = DVec2 { x: pos.x + size.x * 0.5, y: pos.y + size.y * 0.5 };
@@ -1888,18 +1992,26 @@ impl FlowCanvas {
             };
 
             if node.node_type.has_input() {
-                self.draw_node_bg.color = vec4(0.23, 0.51, 0.96, 1.0);
-                self.draw_node_bg.draw_abs(cx, Rect {
-                    pos: DVec2 { x: input_screen_pos.x - port_radius, y: input_screen_pos.y - port_radius },
-                    size: DVec2 { x: port_radius * 2.0, y: port_radius * 2.0 },
+                let is_hovered = self.hovered_port == Some((node_idx, false, 0));
+                let hover_val = if is_hovered { 1.0_f32 } else { 0.0_f32 };
+                let draw_r = if is_hovered { port_radius * 1.3 } else { port_radius };
+                self.draw_port_circle.color = vec4(0.23, 0.51, 0.96, 1.0);
+                self.draw_port_circle.hover = hover_val;
+                self.draw_port_circle.draw_abs(cx, Rect {
+                    pos: DVec2 { x: input_screen_pos.x - draw_r, y: input_screen_pos.y - draw_r },
+                    size: DVec2 { x: draw_r * 2.0, y: draw_r * 2.0 },
                 });
             }
 
             if node.node_type.has_output() {
-                self.draw_node_bg.color = vec4(0.13, 0.77, 0.37, 1.0);
-                self.draw_node_bg.draw_abs(cx, Rect {
-                    pos: DVec2 { x: output_screen_pos.x - port_radius, y: output_screen_pos.y - port_radius },
-                    size: DVec2 { x: port_radius * 2.0, y: port_radius * 2.0 },
+                let is_hovered = self.hovered_port == Some((node_idx, true, 0));
+                let hover_val = if is_hovered { 1.0_f32 } else { 0.0_f32 };
+                let draw_r = if is_hovered { port_radius * 1.3 } else { port_radius };
+                self.draw_port_circle.color = vec4(0.13, 0.77, 0.37, 1.0);
+                self.draw_port_circle.hover = hover_val;
+                self.draw_port_circle.draw_abs(cx, Rect {
+                    pos: DVec2 { x: output_screen_pos.x - draw_r, y: output_screen_pos.y - draw_r },
+                    size: DVec2 { x: draw_r * 2.0, y: draw_r * 2.0 },
                 });
             }
         } else {
@@ -1911,11 +2023,15 @@ impl FlowCanvas {
                 let port_y = pos.y + header_h + (i as f64 * port_height) + port_height / 2.0;
                 let port_x = pos.x;
 
-                // Draw port circle (blue for input)
-                self.draw_node_bg.color = vec4(0.23, 0.51, 0.96, 1.0);
-                self.draw_node_bg.draw_abs(cx, Rect {
-                    pos: DVec2 { x: port_x - port_radius, y: port_y - port_radius },
-                    size: DVec2 { x: port_radius * 2.0, y: port_radius * 2.0 },
+                // Draw port circle (blue for input) with hover glow
+                let is_hovered = self.hovered_port == Some((node_idx, false, i));
+                let hover_val = if is_hovered { 1.0_f32 } else { 0.0_f32 };
+                let draw_r = if is_hovered { port_radius * 1.3 } else { port_radius };
+                self.draw_port_circle.color = vec4(0.23, 0.51, 0.96, 1.0);
+                self.draw_port_circle.hover = hover_val;
+                self.draw_port_circle.draw_abs(cx, Rect {
+                    pos: DVec2 { x: port_x - draw_r, y: port_y - draw_r },
+                    size: DVec2 { x: draw_r * 2.0, y: draw_r * 2.0 },
                 });
 
                 // Draw port label
@@ -1932,11 +2048,15 @@ impl FlowCanvas {
                 let port_y = pos.y + header_h + (i as f64 * port_height) + port_height / 2.0;
                 let port_x = pos.x + size.x;
 
-                // Draw port circle (green for output)
-                self.draw_node_bg.color = vec4(0.13, 0.77, 0.37, 1.0);
-                self.draw_node_bg.draw_abs(cx, Rect {
-                    pos: DVec2 { x: port_x - port_radius, y: port_y - port_radius },
-                    size: DVec2 { x: port_radius * 2.0, y: port_radius * 2.0 },
+                // Draw port circle (green for output) with hover glow
+                let is_hovered = self.hovered_port == Some((node_idx, true, i));
+                let hover_val = if is_hovered { 1.0_f32 } else { 0.0_f32 };
+                let draw_r = if is_hovered { port_radius * 1.3 } else { port_radius };
+                self.draw_port_circle.color = vec4(0.13, 0.77, 0.37, 1.0);
+                self.draw_port_circle.hover = hover_val;
+                self.draw_port_circle.draw_abs(cx, Rect {
+                    pos: DVec2 { x: port_x - draw_r, y: port_y - draw_r },
+                    size: DVec2 { x: draw_r * 2.0, y: draw_r * 2.0 },
                 });
 
                 // Draw port label (right-aligned)
