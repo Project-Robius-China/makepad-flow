@@ -1075,21 +1075,26 @@ impl Widget for FlowCanvas {
             }
 
             Hit::FingerScroll(se) => {
-                // Zoom with scroll — adopted from makepad designer_view pattern
-                if se.scroll.y < 0.0 {
-                    let step = (-se.scroll.y).min(200.0) / 500.0;
-                    self.zoom *= 1.0 - step;
+                if se.modifiers.control || se.modifiers.logo {
+                    // Ctrl/Cmd + scroll = zoom (designer_view pattern)
+                    if se.scroll.y < 0.0 {
+                        let step = (-se.scroll.y).min(200.0) / 500.0;
+                        self.zoom *= 1.0 - step;
+                    } else {
+                        let step = (se.scroll.y).min(200.0) / 500.0;
+                        self.zoom *= 1.0 + step;
+                    }
+                    self.zoom = self.zoom.clamp(canvas::MIN_ZOOM, canvas::MAX_ZOOM);
+
+                    // Anchor zoom to cursor position
+                    let local = self.screen_to_canvas(se.abs, area_rect);
+                    self.pan_offset.x = se.abs.x - area_rect.pos.x - (local.x * self.zoom);
+                    self.pan_offset.y = se.abs.y - area_rect.pos.y - (local.y * self.zoom);
                 } else {
-                    let step = (se.scroll.y).min(200.0) / 500.0;
-                    self.zoom *= 1.0 + step;
+                    // Two-finger scroll = pan
+                    self.pan_offset.x += se.scroll.x;
+                    self.pan_offset.y += se.scroll.y;
                 }
-                self.zoom = self.zoom.clamp(canvas::MIN_ZOOM, canvas::MAX_ZOOM);
-
-                // Anchor zoom to cursor position
-                let local = self.screen_to_canvas(se.abs, area_rect);
-                self.pan_offset.x = se.abs.x - area_rect.pos.x - (local.x * self.zoom);
-                self.pan_offset.y = se.abs.y - area_rect.pos.y - (local.y * self.zoom);
-
                 self.view.redraw(cx);
             }
 
