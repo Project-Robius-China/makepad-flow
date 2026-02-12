@@ -58,6 +58,16 @@ live_design! {
                         draw_bg: { color: #3d3d5c }
                         text: "Fit View"
                     }
+                    zoom_in_btn = <Button> {
+                        width: Fit, height: 32, padding: { left: 12, right: 12 }
+                        draw_bg: { color: #3d5c3d }
+                        text: "+"
+                    }
+                    zoom_out_btn = <Button> {
+                        width: Fit, height: 32, padding: { left: 12, right: 12 }
+                        draw_bg: { color: #3d5c3d }
+                        text: "-"
+                    }
                     clear_btn = <Button> {
                         width: Fit, height: 32, padding: { left: 12, right: 12 }
                         draw_bg: { color: #3d3d5c }
@@ -114,6 +124,13 @@ impl MatchEvent for App {
 
         if self.ui.button(ids!(fit_view_btn)).clicked(actions) {
             cx.action(FlowCanvasCommand::FitView);
+        }
+
+        if self.ui.button(ids!(zoom_in_btn)).clicked(actions) {
+            cx.action(FlowCanvasCommand::ZoomIn);
+        }
+        if self.ui.button(ids!(zoom_out_btn)).clicked(actions) {
+            cx.action(FlowCanvasCommand::ZoomOut);
         }
 
         if self.ui.button(ids!(clear_btn)).clicked(actions) {

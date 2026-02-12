@@ -542,6 +542,8 @@ pub enum FlowCanvasCommand {
     Delete,
     FitView,
     Clear,
+    ZoomIn,
+    ZoomOut,
     SetLineStyle(f32),
     SetLineWidth(f32),
     LoadDataflow { nodes: Vec<FlowNode>, edges: Vec<EdgeConnection> },
@@ -1191,6 +1193,14 @@ impl Widget for FlowCanvas {
                         }
                         FlowCanvasCommand::FitView => {
                             self.fit_view(cx);
+                        }
+                        FlowCanvasCommand::ZoomIn => {
+                            self.zoom = (self.zoom * 1.25).clamp(canvas::MIN_ZOOM, canvas::MAX_ZOOM);
+                            self.view.redraw(cx);
+                        }
+                        FlowCanvasCommand::ZoomOut => {
+                            self.zoom = (self.zoom * 0.8).clamp(canvas::MIN_ZOOM, canvas::MAX_ZOOM);
+                            self.view.redraw(cx);
                         }
                         FlowCanvasCommand::Clear => {
                             self.clear(cx);

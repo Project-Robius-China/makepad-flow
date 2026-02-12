@@ -79,6 +79,26 @@ live_design! {
                         }
                         text: "Fit View"
                     }
+
+                    zoom_in_btn = <Button> {
+                        width: Fit, height: 32, padding: { left: 12, right: 12 }
+                        draw_bg: { color: #5AAE6F, border_radius: 6.0 }
+                        draw_text: {
+                            text_style: <FONT_MANROPE> { font_size: 15.0 }
+                            fn get_color(self) -> vec4 { return #ffffff; }
+                        }
+                        text: "+"
+                    }
+
+                    zoom_out_btn = <Button> {
+                        width: Fit, height: 32, padding: { left: 12, right: 12 }
+                        draw_bg: { color: #5AAE6F, border_radius: 6.0 }
+                        draw_text: {
+                            text_style: <FONT_MANROPE> { font_size: 15.0 }
+                            fn get_color(self) -> vec4 { return #ffffff; }
+                        }
+                        text: "-"
+                    }
                 }
 
                 // Main area with panels
@@ -546,6 +566,14 @@ impl MatchEvent for App {
         // Fit view button
         if self.ui.button(ids!(fit_view_btn)).clicked(actions) {
             cx.action(FlowCanvasCommand::FitView);
+        }
+
+        // Zoom buttons
+        if self.ui.button(ids!(zoom_in_btn)).clicked(actions) {
+            cx.action(FlowCanvasCommand::ZoomIn);
+        }
+        if self.ui.button(ids!(zoom_out_btn)).clicked(actions) {
+            cx.action(FlowCanvasCommand::ZoomOut);
         }
 
         // Reload button
