@@ -825,6 +825,13 @@ impl Widget for FlowCanvas {
                     }
                 }
 
+                // Right-click (two-finger press on trackpad) for panning
+                if fe.mouse_button().is_some_and(|mb| mb.is_secondary()) {
+                    self.drag_state = DragState::Panning { start: fe.abs };
+                    cx.set_cursor(MouseCursor::Grab);
+                    return;
+                }
+
                 // Check for shift+click for panning
                 if fe.modifiers.shift {
                     self.drag_state = DragState::Panning { start: fe.abs };
@@ -1075,7 +1082,7 @@ impl Widget for FlowCanvas {
             }
 
             Hit::FingerScroll(se) => {
-                // Zoom with scroll — adopted from makepad designer_view pattern
+                // Scroll = zoom (designer_view pattern)
                 if se.scroll.y < 0.0 {
                     let step = (-se.scroll.y).min(200.0) / 500.0;
                     self.zoom *= 1.0 - step;
