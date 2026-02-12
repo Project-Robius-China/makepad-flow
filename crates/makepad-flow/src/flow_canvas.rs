@@ -542,6 +542,8 @@ pub enum FlowCanvasCommand {
     Delete,
     FitView,
     Clear,
+    ZoomIn,
+    ZoomOut,
     SetLineStyle(f32),
     SetLineWidth(f32),
     LoadDataflow { nodes: Vec<FlowNode>, edges: Vec<EdgeConnection> },
@@ -1073,12 +1075,18 @@ impl Widget for FlowCanvas {
             }
 
             Hit::FingerScroll(se) => {
-                // Zoom with scroll wheel
-                let zoom_delta = if se.scroll.y > 0.0 { 1.1 } else { 0.9 };
-                let local = self.screen_to_canvas(se.abs, area_rect);
-                self.zoom = (self.zoom * zoom_delta).clamp(canvas::MIN_ZOOM, canvas::MAX_ZOOM);
+                // Zoom with scroll — adopted from makepad designer_view pattern
+                if se.scroll.y < 0.0 {
+                    let step = (-se.scroll.y).min(200.0) / 500.0;
+                    self.zoom *= 1.0 - step;
+                } else {
+                    let step = (se.scroll.y).min(200.0) / 500.0;
+                    self.zoom *= 1.0 + step;
+                }
+                self.zoom = self.zoom.clamp(canvas::MIN_ZOOM, canvas::MAX_ZOOM);
 
-                // Zoom toward cursor position
+                // Anchor zoom to cursor position
+                let local = self.screen_to_canvas(se.abs, area_rect);
                 self.pan_offset.x = se.abs.x - area_rect.pos.x - (local.x * self.zoom);
                 self.pan_offset.y = se.abs.y - area_rect.pos.y - (local.y * self.zoom);
 
@@ -1185,6 +1193,14 @@ impl Widget for FlowCanvas {
                         }
                         FlowCanvasCommand::FitView => {
                             self.fit_view(cx);
+                        }
+                        FlowCanvasCommand::ZoomIn => {
+                            self.zoom = (self.zoom * 1.25).clamp(canvas::MIN_ZOOM, canvas::MAX_ZOOM);
+                            self.view.redraw(cx);
+                        }
+                        FlowCanvasCommand::ZoomOut => {
+                            self.zoom = (self.zoom * 0.8).clamp(canvas::MIN_ZOOM, canvas::MAX_ZOOM);
+                            self.view.redraw(cx);
                         }
                         FlowCanvasCommand::Clear => {
                             self.clear(cx);
