@@ -1073,20 +1073,22 @@ impl Widget for FlowCanvas {
             }
 
             Hit::FingerScroll(se) => {
-                // Zoom with scroll wheel — use proportional delta for smooth
-                // bi-directional zoom on macOS trackpad and mouse wheel
-                if se.scroll.y.abs() < 0.001 { /* ignore near-zero scroll */ }
-                else {
-                    let zoom_delta = (1.0 + se.scroll.y * 0.005).clamp(0.5, 2.0);
-                    let local = self.screen_to_canvas(se.abs, area_rect);
-                    self.zoom = (self.zoom * zoom_delta).clamp(canvas::MIN_ZOOM, canvas::MAX_ZOOM);
-
-                    // Zoom toward cursor position
-                    self.pan_offset.x = se.abs.x - area_rect.pos.x - (local.x * self.zoom);
-                    self.pan_offset.y = se.abs.y - area_rect.pos.y - (local.y * self.zoom);
-
-                    self.view.redraw(cx);
+                // Zoom with scroll — adopted from makepad designer_view pattern
+                if se.scroll.y < 0.0 {
+                    let step = (-se.scroll.y).min(200.0) / 500.0;
+                    self.zoom *= 1.0 - step;
+                } else {
+                    let step = (se.scroll.y).min(200.0) / 500.0;
+                    self.zoom *= 1.0 + step;
                 }
+                self.zoom = self.zoom.clamp(canvas::MIN_ZOOM, canvas::MAX_ZOOM);
+
+                // Anchor zoom to cursor position
+                let local = self.screen_to_canvas(se.abs, area_rect);
+                self.pan_offset.x = se.abs.x - area_rect.pos.x - (local.x * self.zoom);
+                self.pan_offset.y = se.abs.y - area_rect.pos.y - (local.y * self.zoom);
+
+                self.view.redraw(cx);
             }
 
             Hit::FingerHoverIn(_) => {
